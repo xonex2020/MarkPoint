@@ -1,16 +1,11 @@
 <template>
   <div class="app-container" ref="container">
-    <!-- Editor -->
     <section class="editor" ref="editor">
-      <div class="toolbar">
-        <button @click="insert('**', '**', 'Fett')" title="Fett"><b>B</b></button>
-        <button @click="insert('*', '*', 'Kursiv')" title="Kursiv"><i>I</i></button>
-        <button @click="insert('~~', '~~', 'Durchgestrichen')" title="Durchgestrichen">
-          <s>S</s>
-        </button>
-        <button @click="insert('`', '`', 'Code')" title="Code">&lt;/&gt;</button>
-        <button @click="toggleEmojiPicker" title="Emoji">😊</button>
-      </div>
+      <Toolbar
+        @insert="handleInsert"
+        @insertRaw="handleInsertRaw"
+        @toggleEmojiPicker="toggleEmojiPicker"
+      />
       <textarea
         ref="textarea"
         v-model="markdown"
@@ -18,7 +13,6 @@
         placeholder="Schreibe Markdown..."
       ></textarea>
 
-      <!-- Emoji Picker (draggable) -->
       <EmojiPickerWrapper
         v-if="showEmojiPicker"
         :theme="'dark'"
@@ -27,17 +21,16 @@
       />
     </section>
 
-    <!-- Resizer -->
     <div class="resizer" @mousedown="startResize" />
 
-    <!-- Vorschau -->
     <section class="preview" ref="preview" v-html="renderedMarkdown"></section>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed } from 'vue'
 import { marked } from 'marked'
+import Toolbar from '@/components/Toolbar.vue'
 import EmojiPickerWrapper from '@/components/EmojiPicker.vue'
 
 const markdown = ref(`# Willkommen bei MarkPoint\n\nMarkdown + Emojis 😄`)
@@ -46,7 +39,6 @@ const preview = ref(null)
 const container = ref(null)
 const editor = ref(null)
 
-// Scroll Sync
 function syncScroll() {
   const t = textarea.value
   const p = preview.value
@@ -54,8 +46,20 @@ function syncScroll() {
   p.scrollTop = ratio * (p.scrollHeight - p.clientHeight)
 }
 
-// Insert Markdown format
-function insert(before, after, placeholder) {
+function insertTextAtCursor(text) {
+  const el = textarea.value
+  const start = el.selectionStart
+  const end = el.selectionEnd
+  const before = markdown.value.slice(0, start)
+  const after = markdown.value.slice(end)
+  markdown.value = before + text + after
+  setTimeout(() => {
+    el.focus()
+    el.setSelectionRange(start + text.length, start + text.length)
+  }, 0)
+}
+
+function handleInsert({ before, after, placeholder }) {
   const el = textarea.value
   const start = el.selectionStart
   const end = el.selectionEnd
@@ -69,7 +73,10 @@ function insert(before, after, placeholder) {
   }, 0)
 }
 
-// Emoji Picker
+function handleInsertRaw(tableMarkdown) {
+  insertTextAtCursor(tableMarkdown)
+}
+
 const showEmojiPicker = ref(false)
 function toggleEmojiPicker() {
   showEmojiPicker.value = !showEmojiPicker.value
@@ -88,10 +95,8 @@ function onEmojiSelect(emoji) {
   }, 0)
 }
 
-// Markdown Parser
 const renderedMarkdown = computed(() => marked.parse(markdown.value))
 
-// Resizer
 let startX = 0
 let startWidth = 0
 
