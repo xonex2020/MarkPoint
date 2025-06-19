@@ -1,39 +1,31 @@
 # MarkPoint
 
-This template should help get you started developing with Vue 3 in Vite.
+**MarkPoint** ist eine schlanke Vue.js-App zum einfachen Erstellen und Bearbeiten von Markdown-Inhalten mit Live-Preview. Perfekt für Notizen, Dokumentation oder Blog-Artikel.
 
-## Recommended IDE Setup
+---
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 🚀 Features
 
-## Type Support for `.vue` Imports in TS
+- Live Markdown-Editor mit Echtzeit-Vorschau
+- Emoji-Unterstützung
+- Intuitive Toolbar für Textformatierung (fett, kursiv, Listen, Unterstreichen)
+- Saubere Zeilenumbrüche im Editor
+- Export als Markdown und HTML
+- Responsives Design für Desktop & Mobil
+- Leicht erweiterbar und anpassbar
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+---
 
-## Customize configuration
+## 💻 Voraussetzungen
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+- Node.js (Version 18+ empfohlen)  
+- npm oder yarn
 
-## Project Setup
+---
 
-```sh
+## Installation
+
+```bash
+git clone https://github.com/xonex2020/MarkPoint.git
+cd MarkPoint
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
