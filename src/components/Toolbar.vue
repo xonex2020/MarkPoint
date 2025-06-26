@@ -30,25 +30,32 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import TableInsertModal from './TableInsertModal.vue'
 
-const emit = defineEmits(['insert', 'insertRaw', 'insertList', 'toggleEmojiPicker'])
+type InsertPayload = { before: string; after: string; placeholder: string }
+type InsertListPayload = { type: string }
+
+const emit = defineEmits<{
+  (e: 'insert', payload: InsertPayload): void
+  (e: 'insertRaw', content: string): void
+  (e: 'insertList', payload: InsertListPayload): void
+  (e: 'toggleEmojiPicker'): void
+}>()
+
 const showTableModal = ref(false)
 const selectedHeading = ref('')
 
-// Diese Funktionen lösen nur Events aus, der eigentliche Text kommt von App.vue
-
-function emitInsert(before, after, placeholder) {
+function emitInsert(before: string, after: string, placeholder: string) {
   emit('insert', { before, after, placeholder })
 }
 
-function emitInsertRaw(content) {
+function emitInsertRaw(content: string) {
   emit('insertRaw', content)
 }
 
-function emitInsertList(type) {
+function emitInsertList(type: string) {
   emit('insertList', { type })
 }
 
@@ -56,7 +63,7 @@ function openTableModal() {
   showTableModal.value = true
 }
 
-function insertTable(tableMarkdown) {
+function insertTable(tableMarkdown: string) {
   emit('insertRaw', tableMarkdown)
   showTableModal.value = false
 }
@@ -83,14 +90,10 @@ function insertHeading() {
   selectedHeading.value = ''
 }
 
-// Helfer: Präfix an jede Zeile hängen
-function prefixLines(prefix) {
-  // Da Toolbar nichts über Auswahl weiß, geben wir ein Platzhalter zurück
-  // Die echte Bearbeitung passiert in App.vue mit Selektion
+function prefixLines(prefix: string) {
   return prefix + '<<selected text>>'
 }
 
-// Helfer: Codeblock mit Auswahl
 function wrapCodeBlock() {
   return '```\n<<selected text>>\n```'
 }

@@ -11,19 +11,19 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import EmojiPicker from 'vue3-emoji-picker'
 import 'vue3-emoji-picker/css'
 
 const emit = defineEmits(['close', 'select'])
-const props = defineProps({ theme: String })
+const props = defineProps<{ theme?: string }>()
 
 const position = ref({ top: 100, left: 100 })
 let dragging = false
-let offset = { x: 0, y: 0 }
+const offset = { x: 0, y: 0 }
 
-const startDrag = (e) => {
+const startDrag = (e: MouseEvent) => {
   dragging = true
   offset.x = e.clientX - position.value.left
   offset.y = e.clientY - position.value.top
@@ -32,7 +32,7 @@ const startDrag = (e) => {
   document.addEventListener('mouseup', stopDrag)
 }
 
-const onDrag = (e) => {
+const onDrag = (e: MouseEvent) => {
   if (!dragging) return
   position.value.left = e.clientX - offset.x
   position.value.top = e.clientY - offset.y
@@ -44,7 +44,7 @@ const stopDrag = () => {
   document.removeEventListener('mouseup', stopDrag)
 }
 
-const onSelect = (emoji) => {
+const onSelect = (emoji: any) => {
   emit('select', emoji)
 }
 

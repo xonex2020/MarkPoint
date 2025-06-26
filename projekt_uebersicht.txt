@@ -1,96 +1,59 @@
 
 ========================================
-Datei: .editorconfig
-========================================
-[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,css,scss,sass,less,styl}]
-charset = utf-8
-indent_size = 2
-indent_style = space
-insert_final_newline = true
-trim_trailing_whitespace = true
-
-end_of_line = lf
-max_line_length = 100
-
-========================================
-Datei: .gitattributes
-========================================
-* text=auto eol=lf
-
-========================================
-Datei: .gitignore
-========================================
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-.DS_Store
-dist
-dist-ssr
-coverage
-*.local
-
-/cypress/videos/
-/cypress/screenshots/
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-*.tsbuildinfo
-
-========================================
-Datei: .prettierrc.json
+Datei: tsconfig.node.json
 ========================================
 {
-  "$schema": "https://json.schemastore.org/prettierrc",
-  "semi": false,
-  "singleQuote": true,
-  "printWidth": 100
+  "extends": "@tsconfig/node22/tsconfig.json",
+  "include": [
+    "vite.config.*",
+    "vitest.config.*",
+    "cypress.config.*",
+    "nightwatch.conf.*",
+    "playwright.config.*",
+    "eslint.config.*"
+  ],
+  "compilerOptions": {
+    "noEmit": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"]
+  }
 }
 
 ========================================
-Datei: docker-compose.yml
+Datei: index.html
 ========================================
-version: "3"
-services:
-  nginx-proxy-manager:
-    image: jc21/nginx-proxy-manager:latest
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-      - "81:81"
-    volumes:
-      - ./npm/data:/data
-      - ./npm/letsencrypt:/etc/letsencrypt
-    networks:
-      - proxy
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/markpoint-favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarkPoint</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
 
-  markpoint:
-    build:
-      context: .
-    restart: always
-    ports:
-      - "8080:8080"  # Optional, nur zum Testen
-    networks:
-      - proxy
+========================================
+Datei: tsconfig.app.json
+========================================
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "exclude": ["src/**/__tests__/*"],
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
 
-networks:
-  proxy:
-    driver: bridge
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
 
 ========================================
 Datei: Dockerfile
@@ -140,21 +103,139 @@ export default defineConfigWithVueTs(
 )
 
 ========================================
-Datei: index.html
+Datei: projekt_uebersicht.py
 ========================================
-<!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html>
+import os
+
+output_file = "projekt_uebersicht.txt"
+exclude_dirs = {"node_modules", ".git", "dist", ".next", ".venv", "__pycache__"}
+
+def save_all_files(root_dir, output_file):
+    with open(output_file, "w", encoding="utf-8") as out:
+        for foldername, subfolders, filenames in os.walk(root_dir):
+            # Ordner rausfiltern, die übersprungen werden sollen
+            subfolders[:] = [d for d in subfolders if d not in exclude_dirs]
+            for filename in filenames:
+                if filename == output_file:
+                    continue  # Nicht die Output-Datei selbst nochmal einlesen
+                file_path = os.path.join(foldername, filename)
+                rel_path = os.path.relpath(file_path, root_dir)
+                out.write(f"\n{'='*40}\nDatei: {rel_path}\n{'='*40}\n")
+                try:
+                    with open(file_path, "r", encoding="utf-8", errors="replace") as file:
+                        out.write(file.read())
+                except Exception as e:
+                    out.write(f"[Konnte Datei nicht lesen: {e}]\n")
+
+if __name__ == "__main__":
+    save_all_files(".", output_file)
+    print(f"Fertig! Übersicht gespeichert in '{output_file}' (ohne node_modules und ähnliche Ordner)")
+
+========================================
+Datei: .editorconfig
+========================================
+[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,css,scss,sass,less,styl}]
+charset = utf-8
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+end_of_line = lf
+max_line_length = 100
+
+========================================
+Datei: README.md
+========================================
+# MarkPoint
+
+![Build Status](https://img.shields.io/github/actions/workflow/status/xonex2020/MarkPoint/ci.yml?branch=main) ![Version](https://img.shields.io/github/package-json/v/xonex2020/MarkPoint) ![License](https://img.shields.io/github/license/xonex2020/MarkPoint)
+
+---
+
+## 🖋️ MarkPoint — Markdown neu erleben
+
+MarkPoint ist ein moderner, schlanker Markdown-Editor mit **Live-Preview** und eingebauter **Emoji-Unterstützung**. Perfekt für Notizen, Dokumentationen oder Blog-Artikel — damit Schreiben endlich Spaß macht!
+
+![MarkPoint Demo](docs/demo.gif) <!-- oder Screenshot -->
+
+---
+
+## 🚀 Features
+
+- ✍️ Live Markdown-Editor mit Echtzeit-Vorschau  
+- 😊 Emoji-Unterstützung  
+- 🛠️ Intuitive Toolbar für fette, kursive, unterstrichene Texte & Listen  
+- ↩️ Saubere Zeilenumbrüche und Formatierung  
+- 📤 Export als Markdown & HTML  
+- 📱 Responsives Design für Desktop & Mobil  
+- 🔧 Einfach erweiterbar und anpassbar  
+
+---
+
+## Warum MarkPoint?  
+
+Im Gegensatz zu anderen Editoren fokussiert sich MarkPoint auf **einfaches, schnelles Schreiben** mit minimaler Ablenkung, ohne auf wichtige Funktionen zu verzichten. Perfekt für alle, die schnell produktiv sein wollen.
+
+---
+
+## 💻 Schnellstart
+
+### Voraussetzungen
+
+- Node.js (Version 18+ empfohlen)  
+- npm oder yarn  
+
+### Installation
+
+```bash
+git clone https://github.com/xonex2020/MarkPoint.git
+cd MarkPoint
+npm install
+
+========================================
+Datei: .prettierrc.json
+========================================
+{
+  "$schema": "https://json.schemastore.org/prettierrc",
+  "semi": false,
+  "singleQuote": true,
+  "printWidth": 100
+}
+
+========================================
+Datei: .gitignore
+========================================
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+.DS_Store
+dist
+dist-ssr
+coverage
+*.local
+
+/cypress/videos/
+/cypress/screenshots/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.tsbuildinfo
 
 ========================================
 Datei: package-lock.json
@@ -5696,6 +5777,7 @@ Datei: package.json
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "vite",
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
@@ -5742,6 +5824,80 @@ Datei: package.json
     "vue-tsc": "^2.2.8"
   }
 }
+
+========================================
+Datei: .gitattributes
+========================================
+* text=auto eol=lf
+
+========================================
+Datei: tsconfig.json
+========================================
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ]
+}
+
+========================================
+Datei: docker-compose.yml
+========================================
+version: "3"
+services:
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    volumes:
+      - ./npm/data:/data
+      - ./npm/letsencrypt:/etc/letsencrypt
+    networks:
+      - proxy
+
+  markpoint:
+    build:
+      context: .
+    restart: always
+    ports:
+      - "8080:8080"  # Optional, nur zum Testen
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    driver: bridge
+
+========================================
+Datei: vite.config.ts
+========================================
+import { fileURLToPath, URL } from 'node:url'
+
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
+import vueDevTools from 'vite-plugin-vue-devtools'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [vue(), vueJsx(), vueDevTools()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  optimizeDeps: {
+    include: ['marked-emoji'], // <-- Hier markieren wir marked-emoji für die Optimierung
+  },
+})
 
 ========================================
 Datei: projekt.zip
@@ -5860,174 +6016,7 @@ MShux �     PK    ��Z����>  �           ��
          �A�-  src/views/UT .�Rhux �     PK
      ׈�Z                     �A�-  src/assets/UT ��Rhux �     PK    ׈�Z�kq1  �           ��.  src/assets/main.cssUT ��Rhux �     PK    ׈�Z�x( �              ��s/  src/assets/logo.svgUT ��Rhux �     PK    ׈�Z��             ��q0  src/assets/base.cssUT ��Rhux �     PK      �	  �3    
 ========================================
-Datei: projekt_uebersicht.py
-========================================
-import os
-
-output_file = "projekt_uebersicht.txt"
-exclude_dirs = {"node_modules", ".git", "dist", ".next", ".venv", "__pycache__"}
-
-def save_all_files(root_dir, output_file):
-    with open(output_file, "w", encoding="utf-8") as out:
-        for foldername, subfolders, filenames in os.walk(root_dir):
-            # Ordner rausfiltern, die übersprungen werden sollen
-            subfolders[:] = [d for d in subfolders if d not in exclude_dirs]
-            for filename in filenames:
-                if filename == output_file:
-                    continue  # Nicht die Output-Datei selbst nochmal einlesen
-                file_path = os.path.join(foldername, filename)
-                rel_path = os.path.relpath(file_path, root_dir)
-                out.write(f"\n{'='*40}\nDatei: {rel_path}\n{'='*40}\n")
-                try:
-                    with open(file_path, "r", encoding="utf-8", errors="replace") as file:
-                        out.write(file.read())
-                except Exception as e:
-                    out.write(f"[Konnte Datei nicht lesen: {e}]\n")
-
-if __name__ == "__main__":
-    save_all_files(".", output_file)
-    print(f"Fertig! Übersicht gespeichert in '{output_file}' (ohne node_modules und ähnliche Ordner)")
-
-========================================
-Datei: README.md
-========================================
-# MarkPoint
-
-![Build Status](https://img.shields.io/github/actions/workflow/status/xonex2020/MarkPoint/ci.yml?branch=main) ![Version](https://img.shields.io/github/package-json/v/xonex2020/MarkPoint) ![License](https://img.shields.io/github/license/xonex2020/MarkPoint)
-
----
-
-## 🖋️ MarkPoint — Markdown neu erleben
-
-MarkPoint ist ein moderner, schlanker Markdown-Editor mit **Live-Preview** und eingebauter **Emoji-Unterstützung**. Perfekt für Notizen, Dokumentationen oder Blog-Artikel — damit Schreiben endlich Spaß macht!
-
-![MarkPoint Demo](docs/demo.gif) <!-- oder Screenshot -->
-
----
-
-## 🚀 Features
-
-- ✍️ Live Markdown-Editor mit Echtzeit-Vorschau  
-- 😊 Emoji-Unterstützung  
-- 🛠️ Intuitive Toolbar für fette, kursive, unterstrichene Texte & Listen  
-- ↩️ Saubere Zeilenumbrüche und Formatierung  
-- 📤 Export als Markdown & HTML  
-- 📱 Responsives Design für Desktop & Mobil  
-- 🔧 Einfach erweiterbar und anpassbar  
-
----
-
-## Warum MarkPoint?  
-
-Im Gegensatz zu anderen Editoren fokussiert sich MarkPoint auf **einfaches, schnelles Schreiben** mit minimaler Ablenkung, ohne auf wichtige Funktionen zu verzichten. Perfekt für alle, die schnell produktiv sein wollen.
-
----
-
-## 💻 Schnellstart
-
-### Voraussetzungen
-
-- Node.js (Version 18+ empfohlen)  
-- npm oder yarn  
-
-### Installation
-
-```bash
-git clone https://github.com/xonex2020/MarkPoint.git
-cd MarkPoint
-npm install
-
-========================================
-Datei: tsconfig.app.json
-========================================
-{
-  "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
-  "exclude": ["src/**/__tests__/*"],
-  "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
-}
-
-========================================
-Datei: tsconfig.json
-========================================
-{
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    },
-    {
-      "path": "./tsconfig.app.json"
-    }
-  ]
-}
-
-========================================
-Datei: tsconfig.node.json
-========================================
-{
-  "extends": "@tsconfig/node22/tsconfig.json",
-  "include": [
-    "vite.config.*",
-    "vitest.config.*",
-    "cypress.config.*",
-    "nightwatch.conf.*",
-    "playwright.config.*",
-    "eslint.config.*"
-  ],
-  "compilerOptions": {
-    "noEmit": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "types": ["node"]
-  }
-}
-
-========================================
-Datei: vite.config.ts
-========================================
-import { fileURLToPath, URL } from 'node:url'
-
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import vueJsx from '@vitejs/plugin-vue-jsx'
-import vueDevTools from 'vite-plugin-vue-devtools'
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [vue(), vueJsx(), vueDevTools()],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-    },
-  },
-  optimizeDeps: {
-    include: ['marked-emoji'], // <-- Hier markieren wir marked-emoji für die Optimierung
-  },
-})
-
-========================================
-Datei: .vscode\extensions.json
-========================================
-{
-  "recommendations": [
-    "Vue.volar",
-    "dbaeumer.vscode-eslint",
-    "EditorConfig.EditorConfig",
-    "esbenp.prettier-vscode"
-  ]
-}
-
-========================================
-Datei: public\favicon.ico
+Datei: public/favicon.ico
 ========================================
            �     (       @                                                                                                                                                                                                                     ��A ��A ��A ��A                                                                                                             ��A ��A ��A3��A3��A ��A                                                                                                         ��A ��A��A���A���A��A                                                                                                     ��A ��A ��AZ��A���A���AZ��A ��A                                                                                                 ��A ��A��AɃ�A���A���AɃ�A��A                                                                                             ��A ��A ��Az��A���A���A���A���Az��A ��A                                                                                     ��A ��A ��A.��A߃�A���A���A���A���A߃�A.��A ��A                                                                                 ��A ��A��A���A���A���A���A���A���A���A���A��A                                                                             ��A ��A ��AH��A���A���A���A���A���A���A���A���AH��A ��A                                                                         ��A ��A��A���A���A���A���A���A���A���A���A���A���A��A                                                                     ��A ��A ��Af��A���A���A���A���A���A���A���A���A���A���Af��A ��A                                                                 ��A ��A ��A҃�A���A���A���A���A���A���A���A���A���A���A҃�A ��A                                                             ��A ��A��A���A���A���A���A���A�|�?�|�?���A���A���A���A���A���A���A��A                                                     ��A ��A ��A7��A惸A���A���A���A���A�jl9�jl9���A���A���A���A���A���A惸A7��A ��A                                                 ��A ��A	��A���A���A���A���A���A�w�=�_L5�_L5�w�=���A���A���A���A���A���A���A	��A                                             ��A ��A ��AR��A�A���A���A���A���@�fa8�^H5�^H5�fa8���@���A���A���A���A���A�AR��A ��A                                         ��A ��A��A�A���A���A���A���A�r�<�^I5�^I5�^I5�^I5�r�<���A���A���A���A���A���A�A��A                                     ��A ��A ��Aq��A���A���A���A���A�}�?�cW7�^H5�^I5�^I5�^H5�cW7�}�?���A���A���A���A���A���Aq��A ��A                                 ��A ��A(��Aڃ�A���A���A���A���A�mv:�^H5�^I5�^I5�^I5�^I5�^H5�mv:���A���A���A���A���A���Aڃ�A(��A                             ��A ��A��A���A���A���A���A���A�y�>�`P6�^H5�^I5�^I5�^I5�^I5�^H5�`P6�y�>���A���A���A���A���A���A���A��A                     ��A ��A ��A@��A샸A���A���A���A���@�ii9�]G5�^I5�^I5�^I5�^I5�^I5�^I5�]G5�ii9���@���A���A���A���A���A샸A@��A ��A                 ��A ��A
 ��A���A���A���A���A���A�u�=�_K5�^I5�^I5�^I5�^I5�^I5�^I5�^I5�^I5�_K5�u�=���A���A���A���A���A���A���A
@@ -6055,7 +6044,45 @@ lr9
 ��A
 ��A                                                                                                                                �������������?���?��������������������������  ��  ��  �  �  ?�  ?�  �  �  �  �  �  �  �� �  �  �  � ����
 ========================================
-Datei: src\App.vue
+Datei: public/markpoint-favicon.svg
+========================================
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect x="4" y="8" width="56" height="48" rx="10" fill="#24292f"></rect>
+  <text x="14" y="40" font-size="28" font-family="Fira Mono,monospace" fill="#ffffff" font-weight="bold">MD</text>
+  <circle cx="52" cy="52" r="6" fill="#43b581"></circle>
+</svg>
+
+========================================
+Datei: .vscode/settings.json
+========================================
+{
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "tsconfig.json": "tsconfig.*.json, env.d.ts",
+    "vite.config.*": "jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*",
+    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig"
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
+
+========================================
+Datei: .vscode/extensions.json
+========================================
+{
+  "recommendations": [
+    "Vue.volar",
+    "dbaeumer.vscode-eslint",
+    "EditorConfig.EditorConfig",
+    "esbenp.prettier-vscode"
+  ]
+}
+
+========================================
+Datei: src/App.vue
 ========================================
 <template>
   <div class="app">
@@ -6126,9 +6153,6 @@ const renderedMarkdown = computed<string | Promise<string>>(() => {
   return marked.parse(markdown.value)
 })
 
-// ----------
-// TypeScript-safe Promise-Type-Guard (keine any-Warnung!)
-// ----------
 function isPromise<T>(val: unknown): val is Promise<T> {
   return !!val && typeof (val as { then?: unknown }).then === 'function'
 }
@@ -6181,11 +6205,6 @@ function handleInsertRaw(content: string) {
   const start = el.selectionStart
   const end = el.selectionEnd
 
-  if (typeof content === 'string' && content.includes('<<selected text>>')) {
-    const selectedText = markdown.value.slice(start, end)
-    content = content.replace(/<<selected text>>/g, selectedText || '')
-  }
-
   markdown.value = markdown.value.slice(0, start) + content + markdown.value.slice(end)
 
   setTimeout(() => {
@@ -6220,10 +6239,20 @@ function handleInsertList({ type }: { type: 'ordered' | 'unordered' }) {
   }, 0)
 }
 
-function onEmojiSelect(emoji: { native?: string; colons?: string; unified?: string }) {
-  handleInsertRaw(emoji.native || emoji.colons || emoji.unified || '')
+// ---------------
+// Emoji-Insert jetzt mit Property `i` als Priorität:
+function onEmojiSelect(
+  emoji: { i?: string; native?: string; emoji?: string; colons?: string; unified?: string }
+) {
+  const symbol = emoji.i || emoji.native || emoji.emoji || emoji.colons || emoji.unified || ''
+  if (symbol) {
+    handleInsertRaw(symbol)
+  } else {
+    console.warn('Kein Emoji gefunden:', emoji)
+  }
   showEmojiPicker.value = false
 }
+// ---------------
 
 function startResize(e: MouseEvent) {
   resizing = true
@@ -6339,7 +6368,7 @@ textarea {
 </style>
 
 ========================================
-Datei: src\main.ts
+Datei: src/main.ts
 ========================================
 import { createApp } from 'vue'
 import App from './App.vue'
@@ -6348,7 +6377,27 @@ import './assets/style.css'
 createApp(App).mount('#app')
 
 ========================================
-Datei: src\shims-vue.d.ts
+Datei: src/Dockerfile
+========================================
+FROM node:18-alpine
+
+# Arbeitsverzeichnis im Container
+WORKDIR /app
+
+# Abhängigkeiten kopieren und installieren
+COPY package*.json ./
+RUN npm install
+
+# Rest des Codes kopieren
+COPY . .
+
+# Port freigeben
+EXPOSE 8080
+
+# Startbefehl
+CMD ["npm", "start"]
+========================================
+Datei: src/shims-vue.d.ts
 ========================================
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
@@ -6358,7 +6407,1172 @@ declare module '*.vue' {
 }
 
 ========================================
-Datei: src\assets\style.css
+Datei: src/utils/markdownUtils.js
+========================================
+// src/utils/markdownUtils.js
+
+/**
+ * Toggle Inline Markdown (z.B. **bold**):
+ * Fügt vor und nach der Auswahl die Marker ein,
+ * oder entfernt sie, wenn sie schon da sind.
+ *
+ * @param {string} text - Gesamter Text
+ * @param {number} selectionStart - Startindex der Auswahl
+ * @param {number} selectionEnd - Endindex der Auswahl
+ * @param {string} before - Markdown-Start-Tag (z.B. "**")
+ * @param {string} after - Markdown-End-Tag (optional, Standard = before)
+ * @returns {object} updatedText, newSelectionStart, newSelectionEnd
+ */
+export function toggleInlineMarkdown(text, selectionStart, selectionEnd, before, after = before) {
+  const selected = text.slice(selectionStart, selectionEnd)
+  const hasBefore = selected.startsWith(before)
+  const hasAfter = selected.endsWith(after)
+
+  if (hasBefore && hasAfter) {
+    // Entferne Marker
+    const newText =
+      text.slice(0, selectionStart) +
+      selected.slice(before.length, selected.length - after.length) +
+      text.slice(selectionEnd)
+    const newStart = selectionStart
+    const newEnd = selectionEnd - before.length - after.length
+    return { updatedText: newText, newSelectionStart: newStart, newSelectionEnd: newEnd }
+  } else {
+    // Füge Marker hinzu
+    const newText =
+      text.slice(0, selectionStart) + before + selected + after + text.slice(selectionEnd)
+    const newStart = selectionStart + before.length
+    const newEnd = selectionEnd + before.length
+    return { updatedText: newText, newSelectionStart: newStart, newSelectionEnd: newEnd }
+  }
+}
+
+/**
+ * Toggle Block Markdown (z.B. Listen, Blockquote):
+ * Fügt vor jede Zeile den Prefix ein oder entfernt ihn, wenn er da ist.
+ *
+ * @param {string} text - Gesamter Text
+ * @param {number} selectionStart - Startindex der Auswahl
+ * @param {number} selectionEnd - Endindex der Auswahl
+ * @param {string} prefix - z.B. "- ", "> ", "1. "
+ * @returns {object} updatedText, newSelectionStart, newSelectionEnd
+ */
+export function toggleBlockMarkdown(text, selectionStart, selectionEnd, prefix) {
+  const before = text.slice(0, selectionStart)
+  const selection = text.slice(selectionStart, selectionEnd)
+  const after = text.slice(selectionEnd)
+
+  const lines = selection.split('\n')
+  const allHavePrefix = lines.every((line) => line.startsWith(prefix))
+
+  let updatedLines
+  if (allHavePrefix) {
+    // Entferne Prefix
+    updatedLines = lines.map((line) => (line.startsWith(prefix) ? line.slice(prefix.length) : line))
+  } else {
+    // Füge Prefix hinzu
+    updatedLines = lines.map((line) => prefix + line)
+  }
+
+  const updatedSelection = updatedLines.join('\n')
+  const newText = before + updatedSelection + after
+
+  const lengthDiff = updatedSelection.length - selection.length
+
+  return {
+    updatedText: newText,
+    newSelectionStart: selectionStart,
+    newSelectionEnd: selectionEnd + lengthDiff,
+  }
+}
+
+========================================
+Datei: src/components/MarkdownToHtml.vue
+========================================
+<template>
+  <div class="markdown-converter">
+    <textarea
+      v-model="markdown"
+      rows="10"
+      cols="60"
+      placeholder="Markdown hier eingeben..."
+      class="editor"
+    ></textarea>
+    <button @click="convert" class="convert-btn">In HTML umwandeln</button>
+    <button @click="copyHtml" class="copy-btn">HTML kopieren</button>
+    <div class="output" v-html="html"></div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { marked } from 'marked'
+
+const markdown = ref('')
+const html = ref('')
+
+async function convert() {
+  html.value = await marked.parse(markdown.value)
+}
+
+function copyHtml() {
+  navigator.clipboard.writeText(html.value)
+}
+</script>
+
+<style scoped>
+.markdown-converter {
+  background: #22272e;
+  color: #adbac7;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 700px;
+  margin: 2rem auto;
+  box-shadow: 0 0 24px #1a1a1a88;
+}
+.editor {
+  width: 100%;
+  background: #2d333b;
+  color: #adbac7;
+  border: none;
+  border-radius: 4px;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+  margin-bottom: 1rem;
+}
+.convert-btn, .copy-btn {
+  background: #373e47;
+  color: #adbac7;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1.2rem;
+  margin-right: 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.15s;
+}
+.convert-btn:hover, .copy-btn:hover {
+  background: #444c56;
+}
+.output {
+  background: #22272e;
+  color: #adbac7;
+  border: 1px solid #444c56;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  min-height: 100px;
+  font-size: 1.08rem;
+  overflow-x: auto;
+}
+</style>
+
+========================================
+Datei: src/components/EmojiPicker.vue
+========================================
+<template>
+  <div class="picker-wrapper" :style="{ top: position.top + 'px', left: position.left + 'px' }">
+    <div class="picker-header" @mousedown="startDrag">
+      <span>😊 Emoji Picker</span>
+      <button @click="close" class="close-btn">×</button>
+    </div>
+
+    <div class="picker-body" @mousedown.stop>
+      <EmojiPicker :theme="theme" @select="onSelect" :disable-sticky-group-header="true" />
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import EmojiPicker from 'vue3-emoji-picker'
+import 'vue3-emoji-picker/css'
+
+const emit = defineEmits(['close', 'select'])
+const props = defineProps({ theme: String })
+
+const position = ref({ top: 100, left: 100 })
+let dragging = false
+let offset = { x: 0, y: 0 }
+
+const startDrag = (e) => {
+  dragging = true
+  offset.x = e.clientX - position.value.left
+  offset.y = e.clientY - position.value.top
+
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
+}
+
+const onDrag = (e) => {
+  if (!dragging) return
+  position.value.left = e.clientX - offset.x
+  position.value.top = e.clientY - offset.y
+}
+
+const stopDrag = () => {
+  dragging = false
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+}
+
+const onSelect = (emoji) => {
+  emit('select', emoji)
+}
+
+const close = () => {
+  emit('close')
+}
+</script>
+
+<style scoped>
+.picker-wrapper {
+  position: absolute;
+  z-index: 2000;
+  background: var(--vp-bg, white);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+  width: 340px;
+}
+
+.picker-header {
+  cursor: move;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0078d4;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.close-btn {
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.picker-body {
+  padding: 0.5rem;
+}
+</style>
+
+========================================
+Datei: src/components/Toolbar.vue
+========================================
+<template>
+  <div class="toolbar">
+    <select v-model="selectedHeading" @change="insertHeading">
+      <option disabled value="">Überschrift</option>
+      <option value="# ">H1</option>
+      <option value="## ">H2</option>
+      <option value="### ">H3</option>
+      <option value="#### ">H4</option>
+      <option value="##### ">H5</option>
+      <option value="###### ">H6</option>
+    </select>
+
+    <button @click="emitInsertList('unordered')" title="Ungeordnete Liste">• List</button>
+    <button @click="emitInsertList('ordered')" title="Geordnete Liste">1. List</button>
+    <button @click="emitInsertRaw(prefixLines('> '))" title="Zitat">❝</button>
+    <button @click="emitInsertRaw(wrapCodeBlock())" title="Code Block">&lt;/&gt;</button>
+
+    <button @click="emitInsert('**', '**', 'Fett')" title="Fett"><b>B</b></button>
+    <button @click="emitInsert('*', '*', 'Kursiv')" title="Kursiv"><i>I</i></button>
+    <button @click="emitInsert('~~', '~~', 'Durchgestrichen')" title="Durchgestrichen">
+      <s>S</s>
+    </button>
+    <button @click="$emit('toggleEmojiPicker')" title="Emoji">😊</button>
+
+    <button @click="insertLink" title="Link einfügen">🔗</button>
+    <button @click="insertImage" title="Bild einfügen">🖼️</button>
+    <button @click="openTableModal" title="Tabelle einfügen">📊</button>
+
+    <TableInsertModal v-if="showTableModal" @insert="insertTable" @close="showTableModal = false" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import TableInsertModal from './TableInsertModal.vue'
+
+type InsertPayload = { before: string; after: string; placeholder: string }
+type InsertListPayload = { type: string }
+
+const emit = defineEmits<{
+  (e: 'insert', payload: InsertPayload): void
+  (e: 'insertRaw', content: string): void
+  (e: 'insertList', payload: InsertListPayload): void
+  (e: 'toggleEmojiPicker'): void
+}>()
+
+const showTableModal = ref(false)
+const selectedHeading = ref('')
+
+function emitInsert(before: string, after: string, placeholder: string) {
+  emit('insert', { before, after, placeholder })
+}
+
+function emitInsertRaw(content: string) {
+  emit('insertRaw', content)
+}
+
+function emitInsertList(type: string) {
+  emit('insertList', { type })
+}
+
+function openTableModal() {
+  showTableModal.value = true
+}
+
+function insertTable(tableMarkdown: string) {
+  emit('insertRaw', tableMarkdown)
+  showTableModal.value = false
+}
+
+function insertLink() {
+  const url = window.prompt('URL des Links eingeben:', 'https://')
+  if (!url) return
+  const text = window.prompt('Linktext eingeben (optional):', 'Linktext') || 'Linktext'
+  const markdown = `[${text}](${url})`
+  emitInsertRaw(markdown)
+}
+
+function insertImage() {
+  const url = window.prompt('URL des Bildes eingeben:', 'https://')
+  if (!url) return
+  const alt = window.prompt('Alternativer Text für das Bild (optional):', '') || ''
+  const markdown = `![${alt}](${url})`
+  emitInsertRaw(markdown)
+}
+
+function insertHeading() {
+  if (!selectedHeading.value) return
+  emitInsertRaw(selectedHeading.value)
+  selectedHeading.value = ''
+}
+
+function prefixLines(prefix: string) {
+  return prefix + '<<selected text>>'
+}
+
+function wrapCodeBlock() {
+  return '```\n<<selected text>>\n```'
+}
+</script>
+
+<style scoped>
+.toolbar {
+  background: var(--vp-bg-toolbar, #1e1e1e);
+  padding: 0.5rem;
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  border-bottom: 1px solid #444;
+}
+
+select {
+  background: var(--vp-bg-toolbar, #111);
+  color: var(--vp-text-toolbar, #ccc);
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button {
+  background: transparent;
+  border: none;
+  color: var(--vp-text-toolbar, #ccc);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+button:hover,
+select:hover {
+  background-color: #0078d4;
+  color: white;
+}
+</style>
+
+========================================
+Datei: src/components/Editor.vue
+========================================
+<template>
+  <div ref="editorContainer" class="code-editor"></div>
+</template>
+
+<script setup>
+import { ref, onMounted, watch } from 'vue'
+import { EditorView, keymap } from '@codemirror/view' // lineWrapping nicht importieren
+import { EditorState } from '@codemirror/state'
+import { markdown } from '@codemirror/lang-markdown'
+import { indentWithTab } from '@codemirror/commands'
+
+const props = defineProps({
+  modelValue: String,
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const editorContainer = ref(null)
+const editorView = ref(null)
+
+// Editor initialisieren
+onMounted(() => {
+  const state = EditorState.create({
+    doc: props.modelValue,
+    extensions: [
+      markdown(),
+      EditorView.lineWrapping, // lineWrapping so verwenden
+      keymap.of([indentWithTab]),
+      EditorView.updateListener.of((update) => {
+        if (update.docChanged) {
+          emit('update:modelValue', update.state.doc.toString())
+        }
+      }),
+    ],
+  })
+
+  editorView.value = new EditorView({
+    state,
+    parent: editorContainer.value,
+  })
+})
+
+// Externe Änderungen synchronisieren
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (newValue !== editorView.value?.state.doc.toString()) {
+      editorView.value?.dispatch({
+        changes: {
+          from: 0,
+          to: editorView.value.state.doc.length,
+          insert: newValue,
+        },
+      })
+    }
+  },
+)
+
+// EditorView nach außen freigeben
+defineExpose({ editorView })
+</script>
+
+<style>
+.code-editor {
+  height: 100%;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cm-editor {
+  height: 100%;
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  overflow-wrap: break-word; /* Optional: bessere Behandlung langer Wörter */
+}
+
+.cm-content {
+  padding: 10px;
+}
+
+.dark .cm-editor {
+  background: #1e1e1e;
+  color: #e0e0e0;
+}
+</style>
+
+========================================
+Datei: src/components/InfoText.vue
+========================================
+<template>
+  <section class="info">
+    <p class="info-text">
+      Dieses Tool hilft dir, Markdown-Text einfach in HTML umzuwandeln, das
+      <strong>in SharePoint-Webparts</strong> wie "Text" oder "Code-Snippet" eingefügt werden
+      kann.<br />
+      Gib deinen Text im Markdown-Format ein, verwende die Toolbar für Formatierungen, und kopiere
+      anschließend das HTML über den
+      <em>Convert & Copy</em>-Button.<br />
+      📋 <strong>Danach:</strong> Wechsle zu SharePoint, füge ein Text-Webpart ein, klicke auf
+      <em>&lt;Code anzeigen&gt;</em> (&#x3C;&#x2F;&#x3E;) und füge dort den kopierten HTML-Code ein.
+    </p>
+  </section>
+</template>
+
+<style scoped>
+.info-text {
+  font-size: 1rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+</style>
+
+========================================
+Datei: src/components/ToolbarButton.vue
+========================================
+<template>
+  <button type="button" class="toolbar-button" :title="tooltip" @click="$emit('insert', insert)">
+    <slot>{{ label }}</slot>
+  </button>
+</template>
+
+<script setup>
+import { defineProps } from 'vue'
+const props = defineProps({
+  label: String,
+  insert: String,
+  tooltip: String,
+})
+</script>
+
+<style scoped>
+.toolbar-button {
+  background-color: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+.toolbar-button:hover {
+  background-color: var(--btn-hover);
+}
+</style>
+
+========================================
+Datei: src/components/AppHeader.vue
+========================================
+<template>
+  <header class="app-header">
+    <h1 class="title">Markdown Editor</h1>
+    <label
+      class="switch"
+      :aria-checked="isDarkMode"
+      role="switch"
+      tabindex="0"
+      @keydown.space.prevent="toggle()"
+      @keydown.enter.prevent="toggle()"
+    >
+      <input type="checkbox" v-model="checked" @change="toggle" />
+      <span class="slider"></span>
+      <span class="label-text">Dark Mode</span>
+    </label>
+  </header>
+</template>
+
+<script setup>
+import { watch, ref } from 'vue'
+
+const props = defineProps({
+  isDarkMode: Boolean,
+})
+const emit = defineEmits(['toggle-dark-mode'])
+
+const checked = ref(props.isDarkMode)
+
+watch(
+  () => props.isDarkMode,
+  (val) => {
+    checked.value = val
+  },
+)
+
+function toggle() {
+  checked.value = !checked.value
+  emit('toggle-dark-mode')
+}
+</script>
+
+<style scoped>
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #252532;
+  color: #d4d4d4;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.6);
+  user-select: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: 0.05em;
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.slider {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background-color: #ccc;
+  border-radius: 14px;
+  transition: background-color 0.3s;
+  flex-shrink: 0;
+}
+
+.slider::before {
+  position: absolute;
+  content: '';
+  height: 24px;
+  width: 24px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+}
+
+input:checked + .slider {
+  background-color: #4a90e2;
+}
+
+input:checked + .slider::before {
+  transform: translateX(24px);
+}
+
+.label-text {
+  margin-left: 0.75rem;
+  color: #d4d4d4;
+  font-weight: 500;
+  font-size: 1rem;
+  user-select: none;
+}
+
+/* Accessibility focus style */
+.switch:focus-visible .slider {
+  box-shadow: 0 0 0 3px #4a90e2aa;
+  outline: none;
+}
+</style>
+
+========================================
+Datei: src/components/ConvertButton.vue
+========================================
+<template>
+  <button class="convert-button" @click="$emit('convert')">
+    <span class="button-content">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M8 16V8H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <path d="M8 8L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      Convert & Copy
+    </span>
+  </button>
+</template>
+
+<script setup>
+defineProps({
+  markdown: {
+    type: String,
+    default: '',
+  },
+  htmlPreview: {
+    type: String,
+    default: '',
+  },
+})
+
+defineEmits(['convert'])
+</script>
+
+<style scoped>
+.convert-button {
+  background-color: #0078d4;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.convert-button:hover {
+  background-color: #106ebe;
+  transform: translateY(-1px);
+}
+
+.convert-button:active {
+  transform: translateY(0);
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.button-content svg {
+  transition: transform 0.2s ease;
+}
+
+.convert-button:hover .button-content svg {
+  transform: translateX(2px);
+}
+
+.dark .convert-button {
+  background-color: #1a86e0;
+}
+</style>
+
+========================================
+Datei: src/components/PickerWrapper.vue
+========================================
+<template>
+  <div class="picker-wrapper" :style="{ top: position.top + 'px', left: position.left + 'px' }">
+    <div class="picker-header" @mousedown="startDrag">
+      <span>😊 Emoji Picker</span>
+      <button @click="close" class="close-btn">×</button>
+    </div>
+
+    <div class="picker-body" @mousedown.stop>
+      <EmojiPicker :theme="theme" @select="onSelect" :disable-sticky-group-header="true" />
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import EmojiPicker from 'vue3-emoji-picker'
+import 'vue3-emoji-picker/css'
+
+const emit = defineEmits(['close', 'select'])
+const props = defineProps<{ theme?: string }>()
+
+const position = ref({ top: 100, left: 100 })
+let dragging = false
+const offset = { x: 0, y: 0 }
+
+const startDrag = (e: MouseEvent) => {
+  dragging = true
+  offset.x = e.clientX - position.value.left
+  offset.y = e.clientY - position.value.top
+
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
+}
+
+const onDrag = (e: MouseEvent) => {
+  if (!dragging) return
+  position.value.left = e.clientX - offset.x
+  position.value.top = e.clientY - offset.y
+}
+
+const stopDrag = () => {
+  dragging = false
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+}
+
+const onSelect = (emoji: any) => {
+  emit('select', emoji)
+}
+
+const close = () => {
+  emit('close')
+}
+</script>
+
+<style scoped>
+.picker-wrapper {
+  position: absolute;
+  z-index: 2000;
+  background: var(--vp-bg, white);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+  width: 340px;
+}
+
+.picker-header {
+  cursor: move;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0078d4;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.close-btn {
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.picker-body {
+  padding: 0.5rem;
+}
+</style>
+
+========================================
+Datei: src/components/AppFooter.vue
+========================================
+<template>
+  <footer class="app-footer">
+    <small> © 2025 Markdown Editor &mdash; built with Vue 3 &amp; ❤️ </small>
+  </footer>
+</template>
+
+<script setup></script>
+
+<style scoped>
+.app-footer {
+  text-align: center;
+  padding: 1rem 2rem;
+  background: #252532;
+  color: #888ca3;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  user-select: none;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+</style>
+
+========================================
+Datei: src/components/Header.vue
+========================================
+<template>
+  <header class="header">
+    <h1>MarkPoint – Markdown to SharePoint HTML</h1>
+    <label class="toggle-darkmode" title="Dark Mode ein/aus">
+      <input type="checkbox" v-model="darkMode" />
+      Dark Mode
+    </label>
+  </header>
+</template>
+
+<script setup>
+import { defineProps } from 'vue'
+const props = defineProps({ darkMode: Boolean })
+</script>
+
+<style scoped>
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+</style>
+
+========================================
+Datei: src/components/ToolbarDropdown.vue
+========================================
+<template>
+  <div class="dropdown" @mouseleave="close">
+    <button type="button" class="toolbar-button" :title="tooltip" @click="toggle">
+      {{ label }} ▼
+    </button>
+    <ul v-show="open" class="dropdown-menu">
+      <li
+        v-for="item in items"
+        :key="item.label"
+        class="dropdown-item"
+        :title="item.tooltip"
+        @click="select(item.insert)"
+      >
+        {{ item.label }}
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { defineProps, defineEmits } from 'vue'
+
+const props = defineProps({
+  label: String,
+  tooltip: String,
+  items: Array,
+})
+const emit = defineEmits(['insert'])
+
+const open = ref(false)
+function toggle() {
+  open.value = !open.value
+}
+function close() {
+  open.value = false
+}
+function select(text) {
+  emit('insert', text)
+  close()
+}
+</script>
+
+<style scoped>
+.dropdown {
+  position: relative;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: 4px;
+  padding: 0.3rem 0;
+  min-width: 150px;
+  z-index: 100;
+  box-shadow: 0 3px 5px rgb(0 0 0 / 0.1);
+}
+.dropdown-menu li {
+  list-style: none;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dropdown-menu li:hover {
+  background-color: var(--dropdown-hover);
+}
+</style>
+
+========================================
+Datei: src/components/TableInsertModal.vue
+========================================
+<template>
+  <div class="modal-backdrop" @click.self="close">
+    <div class="modal">
+      <h3>Tabelle einfügen</h3>
+      <form @submit.prevent="insertTable">
+        <label>
+          Spalten:
+          <input type="number" v-model.number="columns" min="1" max="20" required />
+        </label>
+        <label>
+          Zeilen:
+          <input type="number" v-model.number="rows" min="1" max="50" required />
+        </label>
+        <div class="buttons">
+          <button type="submit">Einfügen</button>
+          <button type="button" @click="close">Abbrechen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const emit = defineEmits<{
+  (e: 'insert', markdown: string): void
+  (e: 'close'): void
+}>()
+
+const rows = ref<number>(3)
+const columns = ref<number>(3)
+
+function insertTable() {
+  let header = '|'
+  let separator = '|'
+  for (let i = 0; i < columns.value; i++) {
+    header += ` Spalte${i + 1} |`
+    separator += '---------|'
+  }
+  let body = ''
+  for (let j = 0; j < rows.value; j++) {
+    let row = '|'
+    for (let i = 0; i < columns.value; i++) {
+      row += '         |'
+    }
+    body += row + '\n'
+  }
+  const tableMarkdown = `${header}\n${separator}\n${body}`
+  emit('insert', tableMarkdown)
+  emit('close')
+}
+
+function close() {
+  emit('close')
+}
+</script>
+
+<style scoped>
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+}
+
+.modal {
+  background: var(--vp-bg, #222);
+  padding: 1.5rem;
+  border-radius: 8px;
+  color: var(--vp-text, #eee);
+  width: 320px;
+}
+
+form label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+input[type='number'] {
+  width: 60px;
+  padding: 0.25rem;
+  border-radius: 4px;
+  border: 1px solid #666;
+  background: var(--vp-bg, #222);
+  color: var(--vp-text, #eee);
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button[type='submit'] {
+  background-color: #0078d4;
+  color: white;
+}
+
+button[type='button'] {
+  background-color: #555;
+  color: white;
+}
+</style>
+
+========================================
+Datei: src/components/icons/IconCommunity.vue
+========================================
+<template>
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor">
+    <path
+      d="M15 4a1 1 0 1 0 0 2V4zm0 11v-1a1 1 0 0 0-1 1h1zm0 4l-.707.707A1 1 0 0 0 16 19h-1zm-4-4l.707-.707A1 1 0 0 0 11 14v1zm-4.707-1.293a1 1 0 0 0-1.414 1.414l1.414-1.414zm-.707.707l-.707-.707.707.707zM9 11v-1a1 1 0 0 0-.707.293L9 11zm-4 0h1a1 1 0 0 0-1-1v1zm0 4H4a1 1 0 0 0 1.707.707L5 15zm10-9h2V4h-2v2zm2 0a1 1 0 0 1 1 1h2a3 3 0 0 0-3-3v2zm1 1v6h2V7h-2zm0 6a1 1 0 0 1-1 1v2a3 3 0 0 0 3-3h-2zm-1 1h-2v2h2v-2zm-3 1v4h2v-4h-2zm1.707 3.293l-4-4-1.414 1.414 4 4 1.414-1.414zM11 14H7v2h4v-2zm-4 0c-.276 0-.525-.111-.707-.293l-1.414 1.414C5.42 15.663 6.172 16 7 16v-2zm-.707 1.121l3.414-3.414-1.414-1.414-3.414 3.414 1.414 1.414zM9 12h4v-2H9v2zm4 0a3 3 0 0 0 3-3h-2a1 1 0 0 1-1 1v2zm3-3V3h-2v6h2zm0-6a3 3 0 0 0-3-3v2a1 1 0 0 1 1 1h2zm-3-3H3v2h10V0zM3 0a3 3 0 0 0-3 3h2a1 1 0 0 1 1-1V0zM0 3v6h2V3H0zm0 6a3 3 0 0 0 3 3v-2a1 1 0 0 1-1-1H0zm3 3h2v-2H3v2zm1-1v4h2v-4H4zm1.707 4.707l.586-.586-1.414-1.414-.586.586 1.414 1.414z"
+    />
+  </svg>
+</template>
+
+========================================
+Datei: src/components/icons/IconSupport.vue
+========================================
+<template>
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor">
+    <path
+      d="M10 3.22l-.61-.6a5.5 5.5 0 0 0-7.666.105 5.5 5.5 0 0 0-.114 7.665L10 18.78l8.39-8.4a5.5 5.5 0 0 0-.114-7.665 5.5 5.5 0 0 0-7.666-.105l-.61.61z"
+    />
+  </svg>
+</template>
+
+========================================
+Datei: src/components/icons/IconTooling.vue
+========================================
+<!-- This icon is from <https://github.com/Templarian/MaterialDesign>, distributed under Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0) license-->
+<template>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    aria-hidden="true"
+    role="img"
+    class="iconify iconify--mdi"
+    width="24"
+    height="24"
+    preserveAspectRatio="xMidYMid meet"
+    viewBox="0 0 24 24"
+  >
+    <path
+      d="M20 18v-4h-3v1h-2v-1H9v1H7v-1H4v4h16M6.33 8l-1.74 4H7v-1h2v1h6v-1h2v1h2.41l-1.74-4H6.33M9 5v1h6V5H9m12.84 7.61c.1.22.16.48.16.8V18c0 .53-.21 1-.6 1.41c-.4.4-.85.59-1.4.59H4c-.55 0-1-.19-1.4-.59C2.21 19 2 18.53 2 18v-4.59c0-.32.06-.58.16-.8L4.5 7.22C4.84 6.41 5.45 6 6.33 6H7V5c0-.55.18-1 .57-1.41C7.96 3.2 8.44 3 9 3h6c.56 0 1.04.2 1.43.59c.39.41.57.86.57 1.41v1h.67c.88 0 1.49.41 1.83 1.22l2.34 5.39z"
+      fill="currentColor"
+    ></path>
+  </svg>
+</template>
+
+========================================
+Datei: src/components/icons/IconDocumentation.vue
+========================================
+<template>
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" fill="currentColor">
+    <path
+      d="M11 2.253a1 1 0 1 0-2 0h2zm-2 13a1 1 0 1 0 2 0H9zm.447-12.167a1 1 0 1 0 1.107-1.666L9.447 3.086zM1 2.253L.447 1.42A1 1 0 0 0 0 2.253h1zm0 13H0a1 1 0 0 0 1.553.833L1 15.253zm8.447.833a1 1 0 1 0 1.107-1.666l-1.107 1.666zm0-14.666a1 1 0 1 0 1.107 1.666L9.447 1.42zM19 2.253h1a1 1 0 0 0-.447-.833L19 2.253zm0 13l-.553.833A1 1 0 0 0 20 15.253h-1zm-9.553-.833a1 1 0 1 0 1.107 1.666L9.447 14.42zM9 2.253v13h2v-13H9zm1.553-.833C9.203.523 7.42 0 5.5 0v2c1.572 0 2.961.431 3.947 1.086l1.107-1.666zM5.5 0C3.58 0 1.797.523.447 1.42l1.107 1.666C2.539 2.431 3.928 2 5.5 2V0zM0 2.253v13h2v-13H0zm1.553 13.833C2.539 15.431 3.928 15 5.5 15v-2c-1.92 0-3.703.523-5.053 1.42l1.107 1.666zM5.5 15c1.572 0 2.961.431 3.947 1.086l1.107-1.666C9.203 13.523 7.42 13 5.5 13v2zm5.053-11.914C11.539 2.431 12.928 2 14.5 2V0c-1.92 0-3.703.523-5.053 1.42l1.107 1.666zM14.5 2c1.573 0 2.961.431 3.947 1.086l1.107-1.666C18.203.523 16.421 0 14.5 0v2zm3.5.253v13h2v-13h-2zm1.553 12.167C18.203 13.523 16.421 13 14.5 13v2c1.573 0 2.961.431 3.947 1.086l1.107-1.666zM14.5 13c-1.92 0-3.703.523-5.053 1.42l1.107 1.666C11.539 15.431 12.928 15 14.5 15v-2z"
+    />
+  </svg>
+</template>
+
+========================================
+Datei: src/components/icons/IconEcosystem.vue
+========================================
+<template>
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="20" fill="currentColor">
+    <path
+      d="M11.447 8.894a1 1 0 1 0-.894-1.789l.894 1.789zm-2.894-.789a1 1 0 1 0 .894 1.789l-.894-1.789zm0 1.789a1 1 0 1 0 .894-1.789l-.894 1.789zM7.447 7.106a1 1 0 1 0-.894 1.789l.894-1.789zM10 9a1 1 0 1 0-2 0h2zm-2 2.5a1 1 0 1 0 2 0H8zm9.447-5.606a1 1 0 1 0-.894-1.789l.894 1.789zm-2.894-.789a1 1 0 1 0 .894 1.789l-.894-1.789zm2 .789a1 1 0 1 0 .894-1.789l-.894 1.789zm-1.106-2.789a1 1 0 1 0-.894 1.789l.894-1.789zM18 5a1 1 0 1 0-2 0h2zm-2 2.5a1 1 0 1 0 2 0h-2zm-5.447-4.606a1 1 0 1 0 .894-1.789l-.894 1.789zM9 1l.447-.894a1 1 0 0 0-.894 0L9 1zm-2.447.106a1 1 0 1 0 .894 1.789l-.894-1.789zm-6 3a1 1 0 1 0 .894 1.789L.553 4.106zm2.894.789a1 1 0 1 0-.894-1.789l.894 1.789zm-2-.789a1 1 0 1 0-.894 1.789l.894-1.789zm1.106 2.789a1 1 0 1 0 .894-1.789l-.894 1.789zM2 5a1 1 0 1 0-2 0h2zM0 7.5a1 1 0 1 0 2 0H0zm8.553 12.394a1 1 0 1 0 .894-1.789l-.894 1.789zm-1.106-2.789a1 1 0 1 0-.894 1.789l.894-1.789zm1.106 1a1 1 0 1 0 .894 1.789l-.894-1.789zm2.894.789a1 1 0 1 0-.894-1.789l.894 1.789zM8 19a1 1 0 1 0 2 0H8zm2-2.5a1 1 0 1 0-2 0h2zm-7.447.394a1 1 0 1 0 .894-1.789l-.894 1.789zM1 15H0a1 1 0 0 0 .553.894L1 15zm1-2.5a1 1 0 1 0-2 0h2zm12.553 2.606a1 1 0 1 0 .894 1.789l-.894-1.789zM17 15l.447.894A1 1 0 0 0 18 15h-1zm1-2.5a1 1 0 1 0-2 0h2zm-7.447-5.394l-2 1 .894 1.789 2-1-.894-1.789zm-1.106 1l-2-1-.894 1.789 2 1 .894-1.789zM8 9v2.5h2V9H8zm8.553-4.894l-2 1 .894 1.789 2-1-.894-1.789zm.894 0l-2-1-.894 1.789 2 1 .894-1.789zM16 5v2.5h2V5h-2zm-4.553-3.894l-2-1-.894 1.789 2 1 .894-1.789zm-2.894-1l-2 1 .894 1.789 2-1L8.553.106zM1.447 5.894l2-1-.894-1.789-2 1 .894 1.789zm-.894 0l2 1 .894-1.789-2-1-.894 1.789zM0 5v2.5h2V5H0zm9.447 13.106l-2-1-.894 1.789 2 1 .894-1.789zm0 1.789l2-1-.894-1.789-2 1 .894 1.789zM10 19v-2.5H8V19h2zm-6.553-3.894l-2-1-.894 1.789 2 1 .894-1.789zM2 15v-2.5H0V15h2zm13.447 1.894l2-1-.894-1.789-2 1 .894 1.789zM18 15v-2.5h-2V15h2z"
+    />
+  </svg>
+</template>
+
+========================================
+Datei: src/assets/style.css
 ========================================
 /* Grundfarben & Background */
 :root {
@@ -6519,1163 +7733,5 @@ body {
   .preview {
     flex: none;
     height: 50vh;
-  }
-}
-
-========================================
-Datei: src\components\AppFooter.vue
-========================================
-<template>
-  <footer class="app-footer">
-    <small> © 2025 Markdown Editor &mdash; built with Vue 3 &amp; ❤️ </small>
-  </footer>
-</template>
-
-<script setup></script>
-
-<style scoped>
-.app-footer {
-  text-align: center;
-  padding: 1rem 2rem;
-  background: #252532;
-  color: #888ca3;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  user-select: none;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
-}
-</style>
-
-========================================
-Datei: src\components\AppHeader.vue
-========================================
-<template>
-  <header class="app-header">
-    <h1 class="title">Markdown Editor</h1>
-    <label
-      class="switch"
-      :aria-checked="isDarkMode"
-      role="switch"
-      tabindex="0"
-      @keydown.space.prevent="toggle()"
-      @keydown.enter.prevent="toggle()"
-    >
-      <input type="checkbox" v-model="checked" @change="toggle" />
-      <span class="slider"></span>
-      <span class="label-text">Dark Mode</span>
-    </label>
-  </header>
-</template>
-
-<script setup>
-import { watch, ref } from 'vue'
-
-const props = defineProps({
-  isDarkMode: Boolean,
-})
-const emit = defineEmits(['toggle-dark-mode'])
-
-const checked = ref(props.isDarkMode)
-
-watch(
-  () => props.isDarkMode,
-  (val) => {
-    checked.value = val
-  },
-)
-
-function toggle() {
-  checked.value = !checked.value
-  emit('toggle-dark-mode')
-}
-</script>
-
-<style scoped>
-.app-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: #252532;
-  color: #d4d4d4;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.6);
-  user-select: none;
-  font-family: 'Inter', sans-serif;
-}
-
-.title {
-  font-weight: 600;
-  font-size: 1.5rem;
-  letter-spacing: 0.05em;
-}
-
-.switch {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-  position: absolute;
-}
-
-.slider {
-  position: relative;
-  width: 52px;
-  height: 28px;
-  background-color: #ccc;
-  border-radius: 14px;
-  transition: background-color 0.3s;
-  flex-shrink: 0;
-}
-
-.slider::before {
-  position: absolute;
-  content: '';
-  height: 24px;
-  width: 24px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  border-radius: 50%;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
-}
-
-input:checked + .slider {
-  background-color: #4a90e2;
-}
-
-input:checked + .slider::before {
-  transform: translateX(24px);
-}
-
-.label-text {
-  margin-left: 0.75rem;
-  color: #d4d4d4;
-  font-weight: 500;
-  font-size: 1rem;
-  user-select: none;
-}
-
-/* Accessibility focus style */
-.switch:focus-visible .slider {
-  box-shadow: 0 0 0 3px #4a90e2aa;
-  outline: none;
-}
-</style>
-
-========================================
-Datei: src\components\ConvertButton.vue
-========================================
-<template>
-  <button class="convert-button" @click="$emit('convert')">
-    <span class="button-content">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M8 16V8H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-        <path d="M8 8L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-      </svg>
-      Convert & Copy
-    </span>
-  </button>
-</template>
-
-<script setup>
-defineProps({
-  markdown: {
-    type: String,
-    default: '',
-  },
-  htmlPreview: {
-    type: String,
-    default: '',
-  },
-})
-
-defineEmits(['convert'])
-</script>
-
-<style scoped>
-.convert-button {
-  background-color: #0078d4;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-family: inherit;
-  transition:
-    background-color 0.2s ease,
-    transform 0.1s ease;
-  display: inline-flex;
-  align-items: center;
-}
-
-.convert-button:hover {
-  background-color: #106ebe;
-  transform: translateY(-1px);
-}
-
-.convert-button:active {
-  transform: translateY(0);
-}
-
-.button-content {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.button-content svg {
-  transition: transform 0.2s ease;
-}
-
-.convert-button:hover .button-content svg {
-  transform: translateX(2px);
-}
-
-.dark .convert-button {
-  background-color: #1a86e0;
-}
-</style>
-
-========================================
-Datei: src\components\Editor.vue
-========================================
-<template>
-  <div ref="editorContainer" class="code-editor"></div>
-</template>
-
-<script setup>
-import { ref, onMounted, watch } from 'vue'
-import { EditorView, keymap } from '@codemirror/view' // lineWrapping nicht importieren
-import { EditorState } from '@codemirror/state'
-import { markdown } from '@codemirror/lang-markdown'
-import { indentWithTab } from '@codemirror/commands'
-
-const props = defineProps({
-  modelValue: String,
-})
-
-const emit = defineEmits(['update:modelValue'])
-
-const editorContainer = ref(null)
-const editorView = ref(null)
-
-// Editor initialisieren
-onMounted(() => {
-  const state = EditorState.create({
-    doc: props.modelValue,
-    extensions: [
-      markdown(),
-      EditorView.lineWrapping, // lineWrapping so verwenden
-      keymap.of([indentWithTab]),
-      EditorView.updateListener.of((update) => {
-        if (update.docChanged) {
-          emit('update:modelValue', update.state.doc.toString())
-        }
-      }),
-    ],
-  })
-
-  editorView.value = new EditorView({
-    state,
-    parent: editorContainer.value,
-  })
-})
-
-// Externe Änderungen synchronisieren
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    if (newValue !== editorView.value?.state.doc.toString()) {
-      editorView.value?.dispatch({
-        changes: {
-          from: 0,
-          to: editorView.value.state.doc.length,
-          insert: newValue,
-        },
-      })
-    }
-  },
-)
-
-// EditorView nach außen freigeben
-defineExpose({ editorView })
-</script>
-
-<style>
-.code-editor {
-  height: 100%;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.cm-editor {
-  height: 100%;
-  font-family: 'Fira Code', monospace;
-  font-size: 14px;
-  overflow-wrap: break-word; /* Optional: bessere Behandlung langer Wörter */
-}
-
-.cm-content {
-  padding: 10px;
-}
-
-.dark .cm-editor {
-  background: #1e1e1e;
-  color: #e0e0e0;
-}
-</style>
-
-========================================
-Datei: src\components\EmojiPicker.vue
-========================================
-<template>
-  <div class="picker-wrapper" :style="{ top: position.top + 'px', left: position.left + 'px' }">
-    <div class="picker-header" @mousedown="startDrag">
-      <span>😊 Emoji Picker</span>
-      <button @click="close" class="close-btn">×</button>
-    </div>
-
-    <div class="picker-body" @mousedown.stop>
-      <EmojiPicker :theme="theme" @select="onSelect" :disable-sticky-group-header="true" />
-    </div>
-  </div>
-</template>
-
-<script setup>
-import { ref } from 'vue'
-import EmojiPicker from 'vue3-emoji-picker'
-import 'vue3-emoji-picker/css'
-
-const emit = defineEmits(['close', 'select'])
-const props = defineProps({ theme: String })
-
-const position = ref({ top: 100, left: 100 })
-let dragging = false
-let offset = { x: 0, y: 0 }
-
-const startDrag = (e) => {
-  dragging = true
-  offset.x = e.clientX - position.value.left
-  offset.y = e.clientY - position.value.top
-
-  document.addEventListener('mousemove', onDrag)
-  document.addEventListener('mouseup', stopDrag)
-}
-
-const onDrag = (e) => {
-  if (!dragging) return
-  position.value.left = e.clientX - offset.x
-  position.value.top = e.clientY - offset.y
-}
-
-const stopDrag = () => {
-  dragging = false
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
-}
-
-const onSelect = (emoji) => {
-  emit('select', emoji)
-}
-
-const close = () => {
-  emit('close')
-}
-</script>
-
-<style scoped>
-.picker-wrapper {
-  position: absolute;
-  z-index: 2000;
-  background: var(--vp-bg, white);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-  width: 340px;
-}
-
-.picker-header {
-  cursor: move;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #0078d4;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-.close-btn {
-  background: transparent;
-  color: white;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
-.picker-body {
-  padding: 0.5rem;
-}
-</style>
-
-========================================
-Datei: src\components\Header.vue
-========================================
-<template>
-  <header class="header">
-    <h1>MarkPoint – Markdown to SharePoint HTML</h1>
-    <label class="toggle-darkmode" title="Dark Mode ein/aus">
-      <input type="checkbox" v-model="darkMode" />
-      Dark Mode
-    </label>
-  </header>
-</template>
-
-<script setup>
-import { defineProps } from 'vue'
-const props = defineProps({ darkMode: Boolean })
-</script>
-
-<style scoped>
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-</style>
-
-========================================
-Datei: src\components\InfoText.vue
-========================================
-<template>
-  <section class="info">
-    <p class="info-text">
-      Dieses Tool hilft dir, Markdown-Text einfach in HTML umzuwandeln, das
-      <strong>in SharePoint-Webparts</strong> wie "Text" oder "Code-Snippet" eingefügt werden
-      kann.<br />
-      Gib deinen Text im Markdown-Format ein, verwende die Toolbar für Formatierungen, und kopiere
-      anschließend das HTML über den
-      <em>Convert & Copy</em>-Button.<br />
-      📋 <strong>Danach:</strong> Wechsle zu SharePoint, füge ein Text-Webpart ein, klicke auf
-      <em>&lt;Code anzeigen&gt;</em> (&#x3C;&#x2F;&#x3E;) und füge dort den kopierten HTML-Code ein.
-    </p>
-  </section>
-</template>
-
-<style scoped>
-.info-text {
-  font-size: 1rem;
-  line-height: 1.4;
-  margin-bottom: 1rem;
-  color: var(--text-color);
-}
-</style>
-
-========================================
-Datei: src\components\MarkdownToHtml.vue
-========================================
-<template>
-  <div class="markdown-converter">
-    <textarea
-      v-model="markdown"
-      rows="10"
-      cols="60"
-      placeholder="Markdown hier eingeben..."
-      class="editor"
-    ></textarea>
-    <button @click="convert" class="convert-btn">In HTML umwandeln</button>
-    <button @click="copyHtml" class="copy-btn">HTML kopieren</button>
-    <div class="output" v-html="html"></div>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { ref } from 'vue'
-import { marked } from 'marked'
-
-const markdown = ref('')
-const html = ref('')
-
-async function convert() {
-  html.value = await marked.parse(markdown.value)
-}
-
-function copyHtml() {
-  navigator.clipboard.writeText(html.value)
-}
-</script>
-
-<style scoped>
-.markdown-converter {
-  background: #22272e;
-  color: #adbac7;
-  padding: 2rem;
-  border-radius: 8px;
-  max-width: 700px;
-  margin: 2rem auto;
-  box-shadow: 0 0 24px #1a1a1a88;
-}
-.editor {
-  width: 100%;
-  background: #2d333b;
-  color: #adbac7;
-  border: none;
-  border-radius: 4px;
-  padding: 1rem;
-  font-size: 1.1rem;
-  font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
-  margin-bottom: 1rem;
-}
-.convert-btn, .copy-btn {
-  background: #373e47;
-  color: #adbac7;
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1.2rem;
-  margin-right: 1rem;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.15s;
-}
-.convert-btn:hover, .copy-btn:hover {
-  background: #444c56;
-}
-.output {
-  background: #22272e;
-  color: #adbac7;
-  border: 1px solid #444c56;
-  border-radius: 4px;
-  padding: 1rem;
-  margin-top: 1.5rem;
-  min-height: 100px;
-  font-size: 1.08rem;
-  overflow-x: auto;
-}
-</style>
-
-========================================
-Datei: src\components\PickerWrapper.vue
-========================================
-<template>
-  <div class="picker-wrapper" :style="{ top: position.top + 'px', left: position.left + 'px' }">
-    <div class="picker-header" @mousedown="startDrag">
-      <span>😊 Emoji Picker</span>
-      <button @click="close" class="close-btn">×</button>
-    </div>
-
-    <div class="picker-body" @mousedown.stop>
-      <EmojiPicker :theme="theme" @select="onSelect" :disable-sticky-group-header="true" />
-    </div>
-  </div>
-</template>
-
-<script setup>
-import { ref } from 'vue'
-import EmojiPicker from 'vue3-emoji-picker'
-import 'vue3-emoji-picker/css'
-
-const emit = defineEmits(['close', 'select'])
-const props = defineProps({ theme: String })
-
-const position = ref({ top: 100, left: 100 })
-let dragging = false
-let offset = { x: 0, y: 0 }
-
-const startDrag = (e) => {
-  dragging = true
-  offset.x = e.clientX - position.value.left
-  offset.y = e.clientY - position.value.top
-
-  document.addEventListener('mousemove', onDrag)
-  document.addEventListener('mouseup', stopDrag)
-}
-
-const onDrag = (e) => {
-  if (!dragging) return
-  position.value.left = e.clientX - offset.x
-  position.value.top = e.clientY - offset.y
-}
-
-const stopDrag = () => {
-  dragging = false
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
-}
-
-const onSelect = (emoji) => {
-  emit('select', emoji)
-}
-
-const close = () => {
-  emit('close')
-}
-</script>
-
-<style scoped>
-.picker-wrapper {
-  position: absolute;
-  z-index: 2000;
-  background: var(--vp-bg, white);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-  width: 340px;
-}
-
-.picker-header {
-  cursor: move;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #0078d4;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-.close-btn {
-  background: transparent;
-  color: white;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
-.picker-body {
-  padding: 0.5rem;
-}
-</style>
-
-========================================
-Datei: src\components\TableInsertModal.vue
-========================================
-<template>
-  <div class="modal-backdrop" @click.self="close">
-    <div class="modal">
-      <h3>Tabelle einfügen</h3>
-      <form @submit.prevent="insertTable">
-        <label>
-          Spalten:
-          <input type="number" v-model.number="columns" min="1" max="20" required />
-        </label>
-        <label>
-          Zeilen:
-          <input type="number" v-model.number="rows" min="1" max="50" required />
-        </label>
-        <div class="buttons">
-          <button type="submit">Einfügen</button>
-          <button type="button" @click="close">Abbrechen</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</template>
-
-<script setup>
-import { ref } from 'vue'
-
-const emit = defineEmits(['insert', 'close'])
-
-const rows = ref(3)
-const columns = ref(3)
-
-function insertTable() {
-  let header = '|'
-  let separator = '|'
-  for (let i = 0; i < columns.value; i++) {
-    header += ` Spalte${i + 1} |`
-    separator += '---------|'
-  }
-  let body = ''
-  for (let j = 0; j < rows.value; j++) {
-    let row = '|'
-    for (let i = 0; i < columns.value; i++) {
-      row += '         |'
-    }
-    body += row + '\n'
-  }
-  const tableMarkdown = `${header}\n${separator}\n${body}`
-  emit('insert', tableMarkdown)
-  emit('close')
-}
-function close() {
-  emit('close')
-}
-</script>
-
-<style scoped>
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 3000;
-}
-
-.modal {
-  background: var(--vp-bg, #222);
-  padding: 1.5rem;
-  border-radius: 8px;
-  color: var(--vp-text, #eee);
-  width: 320px;
-}
-
-form label {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-
-input[type='number'] {
-  width: 60px;
-  padding: 0.25rem;
-  border-radius: 4px;
-  border: 1px solid #666;
-  background: var(--vp-bg, #222);
-  color: var(--vp-text, #eee);
-}
-
-.buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button[type='submit'] {
-  background-color: #0078d4;
-  color: white;
-}
-
-button[type='button'] {
-  background-color: #555;
-  color: white;
-}
-</style>
-
-========================================
-Datei: src\components\Toolbar.vue
-========================================
-<template>
-  <div class="toolbar">
-    <select v-model="selectedHeading" @change="insertHeading">
-      <option disabled value="">Überschrift</option>
-      <option value="# ">H1</option>
-      <option value="## ">H2</option>
-      <option value="### ">H3</option>
-      <option value="#### ">H4</option>
-      <option value="##### ">H5</option>
-      <option value="###### ">H6</option>
-    </select>
-
-    <button @click="emitInsertList('unordered')" title="Ungeordnete Liste">• List</button>
-    <button @click="emitInsertList('ordered')" title="Geordnete Liste">1. List</button>
-    <button @click="emitInsertRaw(prefixLines('> '))" title="Zitat">❝</button>
-    <button @click="emitInsertRaw(wrapCodeBlock())" title="Code Block">&lt;/&gt;</button>
-
-    <button @click="emitInsert('**', '**', 'Fett')" title="Fett"><b>B</b></button>
-    <button @click="emitInsert('*', '*', 'Kursiv')" title="Kursiv"><i>I</i></button>
-    <button @click="emitInsert('~~', '~~', 'Durchgestrichen')" title="Durchgestrichen">
-      <s>S</s>
-    </button>
-    <button @click="$emit('toggleEmojiPicker')" title="Emoji">😊</button>
-
-    <button @click="insertLink" title="Link einfügen">🔗</button>
-    <button @click="insertImage" title="Bild einfügen">🖼️</button>
-    <button @click="openTableModal" title="Tabelle einfügen">📊</button>
-
-    <TableInsertModal v-if="showTableModal" @insert="insertTable" @close="showTableModal = false" />
-  </div>
-</template>
-
-<script setup>
-import { ref } from 'vue'
-import TableInsertModal from './TableInsertModal.vue'
-
-const emit = defineEmits(['insert', 'insertRaw', 'insertList', 'toggleEmojiPicker'])
-const showTableModal = ref(false)
-const selectedHeading = ref('')
-
-// Diese Funktionen lösen nur Events aus, der eigentliche Text kommt von App.vue
-
-function emitInsert(before, after, placeholder) {
-  emit('insert', { before, after, placeholder })
-}
-
-function emitInsertRaw(content) {
-  emit('insertRaw', content)
-}
-
-function emitInsertList(type) {
-  emit('insertList', { type })
-}
-
-function openTableModal() {
-  showTableModal.value = true
-}
-
-function insertTable(tableMarkdown) {
-  emit('insertRaw', tableMarkdown)
-  showTableModal.value = false
-}
-
-function insertLink() {
-  const url = window.prompt('URL des Links eingeben:', 'https://')
-  if (!url) return
-  const text = window.prompt('Linktext eingeben (optional):', 'Linktext') || 'Linktext'
-  const markdown = `[${text}](${url})`
-  emitInsertRaw(markdown)
-}
-
-function insertImage() {
-  const url = window.prompt('URL des Bildes eingeben:', 'https://')
-  if (!url) return
-  const alt = window.prompt('Alternativer Text für das Bild (optional):', '') || ''
-  const markdown = `![${alt}](${url})`
-  emitInsertRaw(markdown)
-}
-
-function insertHeading() {
-  if (!selectedHeading.value) return
-  emitInsertRaw(selectedHeading.value)
-  selectedHeading.value = ''
-}
-
-// Helfer: Präfix an jede Zeile hängen
-function prefixLines(prefix) {
-  // Da Toolbar nichts über Auswahl weiß, geben wir ein Platzhalter zurück
-  // Die echte Bearbeitung passiert in App.vue mit Selektion
-  return prefix + '<<selected text>>'
-}
-
-// Helfer: Codeblock mit Auswahl
-function wrapCodeBlock() {
-  return '```\n<<selected text>>\n```'
-}
-</script>
-
-<style scoped>
-.toolbar {
-  background: var(--vp-bg-toolbar, #1e1e1e);
-  padding: 0.5rem;
-  display: flex;
-  gap: 0.3rem;
-  align-items: center;
-  border-bottom: 1px solid #444;
-}
-
-select {
-  background: var(--vp-bg-toolbar, #111);
-  color: var(--vp-text-toolbar, #ccc);
-  border: none;
-  border-radius: 4px;
-  padding: 0.25rem 0.5rem;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-button {
-  background: transparent;
-  border: none;
-  color: var(--vp-text-toolbar, #ccc);
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 0.3rem 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-button:hover,
-select:hover {
-  background-color: #0078d4;
-  color: white;
-}
-</style>
-
-========================================
-Datei: src\components\ToolbarButton.vue
-========================================
-<template>
-  <button type="button" class="toolbar-button" :title="tooltip" @click="$emit('insert', insert)">
-    <slot>{{ label }}</slot>
-  </button>
-</template>
-
-<script setup>
-import { defineProps } from 'vue'
-const props = defineProps({
-  label: String,
-  insert: String,
-  tooltip: String,
-})
-</script>
-
-<style scoped>
-.toolbar-button {
-  background-color: var(--btn-bg);
-  border: 1px solid var(--btn-border);
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  cursor: pointer;
-  user-select: none;
-  font-weight: bold;
-  transition: background-color 0.2s;
-}
-.toolbar-button:hover {
-  background-color: var(--btn-hover);
-}
-</style>
-
-========================================
-Datei: src\components\ToolbarDropdown.vue
-========================================
-<template>
-  <div class="dropdown" @mouseleave="close">
-    <button type="button" class="toolbar-button" :title="tooltip" @click="toggle">
-      {{ label }} ▼
-    </button>
-    <ul v-show="open" class="dropdown-menu">
-      <li
-        v-for="item in items"
-        :key="item.label"
-        class="dropdown-item"
-        :title="item.tooltip"
-        @click="select(item.insert)"
-      >
-        {{ item.label }}
-      </li>
-    </ul>
-  </div>
-</template>
-
-<script setup>
-import { ref } from 'vue'
-import { defineProps, defineEmits } from 'vue'
-
-const props = defineProps({
-  label: String,
-  tooltip: String,
-  items: Array,
-})
-const emit = defineEmits(['insert'])
-
-const open = ref(false)
-function toggle() {
-  open.value = !open.value
-}
-function close() {
-  open.value = false
-}
-function select(text) {
-  emit('insert', text)
-  close()
-}
-</script>
-
-<style scoped>
-.dropdown {
-  position: relative;
-}
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: var(--dropdown-bg);
-  border: 1px solid var(--dropdown-border);
-  border-radius: 4px;
-  padding: 0.3rem 0;
-  min-width: 150px;
-  z-index: 100;
-  box-shadow: 0 3px 5px rgb(0 0 0 / 0.1);
-}
-.dropdown-menu li {
-  list-style: none;
-  padding: 0.3rem 0.8rem;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.dropdown-menu li:hover {
-  background-color: var(--dropdown-hover);
-}
-</style>
-
-========================================
-Datei: src\components\icons\IconCommunity.vue
-========================================
-<template>
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor">
-    <path
-      d="M15 4a1 1 0 1 0 0 2V4zm0 11v-1a1 1 0 0 0-1 1h1zm0 4l-.707.707A1 1 0 0 0 16 19h-1zm-4-4l.707-.707A1 1 0 0 0 11 14v1zm-4.707-1.293a1 1 0 0 0-1.414 1.414l1.414-1.414zm-.707.707l-.707-.707.707.707zM9 11v-1a1 1 0 0 0-.707.293L9 11zm-4 0h1a1 1 0 0 0-1-1v1zm0 4H4a1 1 0 0 0 1.707.707L5 15zm10-9h2V4h-2v2zm2 0a1 1 0 0 1 1 1h2a3 3 0 0 0-3-3v2zm1 1v6h2V7h-2zm0 6a1 1 0 0 1-1 1v2a3 3 0 0 0 3-3h-2zm-1 1h-2v2h2v-2zm-3 1v4h2v-4h-2zm1.707 3.293l-4-4-1.414 1.414 4 4 1.414-1.414zM11 14H7v2h4v-2zm-4 0c-.276 0-.525-.111-.707-.293l-1.414 1.414C5.42 15.663 6.172 16 7 16v-2zm-.707 1.121l3.414-3.414-1.414-1.414-3.414 3.414 1.414 1.414zM9 12h4v-2H9v2zm4 0a3 3 0 0 0 3-3h-2a1 1 0 0 1-1 1v2zm3-3V3h-2v6h2zm0-6a3 3 0 0 0-3-3v2a1 1 0 0 1 1 1h2zm-3-3H3v2h10V0zM3 0a3 3 0 0 0-3 3h2a1 1 0 0 1 1-1V0zM0 3v6h2V3H0zm0 6a3 3 0 0 0 3 3v-2a1 1 0 0 1-1-1H0zm3 3h2v-2H3v2zm1-1v4h2v-4H4zm1.707 4.707l.586-.586-1.414-1.414-.586.586 1.414 1.414z"
-    />
-  </svg>
-</template>
-
-========================================
-Datei: src\components\icons\IconDocumentation.vue
-========================================
-<template>
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" fill="currentColor">
-    <path
-      d="M11 2.253a1 1 0 1 0-2 0h2zm-2 13a1 1 0 1 0 2 0H9zm.447-12.167a1 1 0 1 0 1.107-1.666L9.447 3.086zM1 2.253L.447 1.42A1 1 0 0 0 0 2.253h1zm0 13H0a1 1 0 0 0 1.553.833L1 15.253zm8.447.833a1 1 0 1 0 1.107-1.666l-1.107 1.666zm0-14.666a1 1 0 1 0 1.107 1.666L9.447 1.42zM19 2.253h1a1 1 0 0 0-.447-.833L19 2.253zm0 13l-.553.833A1 1 0 0 0 20 15.253h-1zm-9.553-.833a1 1 0 1 0 1.107 1.666L9.447 14.42zM9 2.253v13h2v-13H9zm1.553-.833C9.203.523 7.42 0 5.5 0v2c1.572 0 2.961.431 3.947 1.086l1.107-1.666zM5.5 0C3.58 0 1.797.523.447 1.42l1.107 1.666C2.539 2.431 3.928 2 5.5 2V0zM0 2.253v13h2v-13H0zm1.553 13.833C2.539 15.431 3.928 15 5.5 15v-2c-1.92 0-3.703.523-5.053 1.42l1.107 1.666zM5.5 15c1.572 0 2.961.431 3.947 1.086l1.107-1.666C9.203 13.523 7.42 13 5.5 13v2zm5.053-11.914C11.539 2.431 12.928 2 14.5 2V0c-1.92 0-3.703.523-5.053 1.42l1.107 1.666zM14.5 2c1.573 0 2.961.431 3.947 1.086l1.107-1.666C18.203.523 16.421 0 14.5 0v2zm3.5.253v13h2v-13h-2zm1.553 12.167C18.203 13.523 16.421 13 14.5 13v2c1.573 0 2.961.431 3.947 1.086l1.107-1.666zM14.5 13c-1.92 0-3.703.523-5.053 1.42l1.107 1.666C11.539 15.431 12.928 15 14.5 15v-2z"
-    />
-  </svg>
-</template>
-
-========================================
-Datei: src\components\icons\IconEcosystem.vue
-========================================
-<template>
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="20" fill="currentColor">
-    <path
-      d="M11.447 8.894a1 1 0 1 0-.894-1.789l.894 1.789zm-2.894-.789a1 1 0 1 0 .894 1.789l-.894-1.789zm0 1.789a1 1 0 1 0 .894-1.789l-.894 1.789zM7.447 7.106a1 1 0 1 0-.894 1.789l.894-1.789zM10 9a1 1 0 1 0-2 0h2zm-2 2.5a1 1 0 1 0 2 0H8zm9.447-5.606a1 1 0 1 0-.894-1.789l.894 1.789zm-2.894-.789a1 1 0 1 0 .894 1.789l-.894-1.789zm2 .789a1 1 0 1 0 .894-1.789l-.894 1.789zm-1.106-2.789a1 1 0 1 0-.894 1.789l.894-1.789zM18 5a1 1 0 1 0-2 0h2zm-2 2.5a1 1 0 1 0 2 0h-2zm-5.447-4.606a1 1 0 1 0 .894-1.789l-.894 1.789zM9 1l.447-.894a1 1 0 0 0-.894 0L9 1zm-2.447.106a1 1 0 1 0 .894 1.789l-.894-1.789zm-6 3a1 1 0 1 0 .894 1.789L.553 4.106zm2.894.789a1 1 0 1 0-.894-1.789l.894 1.789zm-2-.789a1 1 0 1 0-.894 1.789l.894-1.789zm1.106 2.789a1 1 0 1 0 .894-1.789l-.894 1.789zM2 5a1 1 0 1 0-2 0h2zM0 7.5a1 1 0 1 0 2 0H0zm8.553 12.394a1 1 0 1 0 .894-1.789l-.894 1.789zm-1.106-2.789a1 1 0 1 0-.894 1.789l.894-1.789zm1.106 1a1 1 0 1 0 .894 1.789l-.894-1.789zm2.894.789a1 1 0 1 0-.894-1.789l.894 1.789zM8 19a1 1 0 1 0 2 0H8zm2-2.5a1 1 0 1 0-2 0h2zm-7.447.394a1 1 0 1 0 .894-1.789l-.894 1.789zM1 15H0a1 1 0 0 0 .553.894L1 15zm1-2.5a1 1 0 1 0-2 0h2zm12.553 2.606a1 1 0 1 0 .894 1.789l-.894-1.789zM17 15l.447.894A1 1 0 0 0 18 15h-1zm1-2.5a1 1 0 1 0-2 0h2zm-7.447-5.394l-2 1 .894 1.789 2-1-.894-1.789zm-1.106 1l-2-1-.894 1.789 2 1 .894-1.789zM8 9v2.5h2V9H8zm8.553-4.894l-2 1 .894 1.789 2-1-.894-1.789zm.894 0l-2-1-.894 1.789 2 1 .894-1.789zM16 5v2.5h2V5h-2zm-4.553-3.894l-2-1-.894 1.789 2 1 .894-1.789zm-2.894-1l-2 1 .894 1.789 2-1L8.553.106zM1.447 5.894l2-1-.894-1.789-2 1 .894 1.789zm-.894 0l2 1 .894-1.789-2-1-.894 1.789zM0 5v2.5h2V5H0zm9.447 13.106l-2-1-.894 1.789 2 1 .894-1.789zm0 1.789l2-1-.894-1.789-2 1 .894 1.789zM10 19v-2.5H8V19h2zm-6.553-3.894l-2-1-.894 1.789 2 1 .894-1.789zM2 15v-2.5H0V15h2zm13.447 1.894l2-1-.894-1.789-2 1 .894 1.789zM18 15v-2.5h-2V15h2z"
-    />
-  </svg>
-</template>
-
-========================================
-Datei: src\components\icons\IconSupport.vue
-========================================
-<template>
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor">
-    <path
-      d="M10 3.22l-.61-.6a5.5 5.5 0 0 0-7.666.105 5.5 5.5 0 0 0-.114 7.665L10 18.78l8.39-8.4a5.5 5.5 0 0 0-.114-7.665 5.5 5.5 0 0 0-7.666-.105l-.61.61z"
-    />
-  </svg>
-</template>
-
-========================================
-Datei: src\components\icons\IconTooling.vue
-========================================
-<!-- This icon is from <https://github.com/Templarian/MaterialDesign>, distributed under Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0) license-->
-<template>
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
-    aria-hidden="true"
-    role="img"
-    class="iconify iconify--mdi"
-    width="24"
-    height="24"
-    preserveAspectRatio="xMidYMid meet"
-    viewBox="0 0 24 24"
-  >
-    <path
-      d="M20 18v-4h-3v1h-2v-1H9v1H7v-1H4v4h16M6.33 8l-1.74 4H7v-1h2v1h6v-1h2v1h2.41l-1.74-4H6.33M9 5v1h6V5H9m12.84 7.61c.1.22.16.48.16.8V18c0 .53-.21 1-.6 1.41c-.4.4-.85.59-1.4.59H4c-.55 0-1-.19-1.4-.59C2.21 19 2 18.53 2 18v-4.59c0-.32.06-.58.16-.8L4.5 7.22C4.84 6.41 5.45 6 6.33 6H7V5c0-.55.18-1 .57-1.41C7.96 3.2 8.44 3 9 3h6c.56 0 1.04.2 1.43.59c.39.41.57.86.57 1.41v1h.67c.88 0 1.49.41 1.83 1.22l2.34 5.39z"
-      fill="currentColor"
-    ></path>
-  </svg>
-</template>
-
-========================================
-Datei: src\utils\markdownUtils.js
-========================================
-// src/utils/markdownUtils.js
-
-/**
- * Toggle Inline Markdown (z.B. **bold**):
- * Fügt vor und nach der Auswahl die Marker ein,
- * oder entfernt sie, wenn sie schon da sind.
- *
- * @param {string} text - Gesamter Text
- * @param {number} selectionStart - Startindex der Auswahl
- * @param {number} selectionEnd - Endindex der Auswahl
- * @param {string} before - Markdown-Start-Tag (z.B. "**")
- * @param {string} after - Markdown-End-Tag (optional, Standard = before)
- * @returns {object} updatedText, newSelectionStart, newSelectionEnd
- */
-export function toggleInlineMarkdown(text, selectionStart, selectionEnd, before, after = before) {
-  const selected = text.slice(selectionStart, selectionEnd)
-  const hasBefore = selected.startsWith(before)
-  const hasAfter = selected.endsWith(after)
-
-  if (hasBefore && hasAfter) {
-    // Entferne Marker
-    const newText =
-      text.slice(0, selectionStart) +
-      selected.slice(before.length, selected.length - after.length) +
-      text.slice(selectionEnd)
-    const newStart = selectionStart
-    const newEnd = selectionEnd - before.length - after.length
-    return { updatedText: newText, newSelectionStart: newStart, newSelectionEnd: newEnd }
-  } else {
-    // Füge Marker hinzu
-    const newText =
-      text.slice(0, selectionStart) + before + selected + after + text.slice(selectionEnd)
-    const newStart = selectionStart + before.length
-    const newEnd = selectionEnd + before.length
-    return { updatedText: newText, newSelectionStart: newStart, newSelectionEnd: newEnd }
-  }
-}
-
-/**
- * Toggle Block Markdown (z.B. Listen, Blockquote):
- * Fügt vor jede Zeile den Prefix ein oder entfernt ihn, wenn er da ist.
- *
- * @param {string} text - Gesamter Text
- * @param {number} selectionStart - Startindex der Auswahl
- * @param {number} selectionEnd - Endindex der Auswahl
- * @param {string} prefix - z.B. "- ", "> ", "1. "
- * @returns {object} updatedText, newSelectionStart, newSelectionEnd
- */
-export function toggleBlockMarkdown(text, selectionStart, selectionEnd, prefix) {
-  const before = text.slice(0, selectionStart)
-  const selection = text.slice(selectionStart, selectionEnd)
-  const after = text.slice(selectionEnd)
-
-  const lines = selection.split('\n')
-  const allHavePrefix = lines.every((line) => line.startsWith(prefix))
-
-  let updatedLines
-  if (allHavePrefix) {
-    // Entferne Prefix
-    updatedLines = lines.map((line) => (line.startsWith(prefix) ? line.slice(prefix.length) : line))
-  } else {
-    // Füge Prefix hinzu
-    updatedLines = lines.map((line) => prefix + line)
-  }
-
-  const updatedSelection = updatedLines.join('\n')
-  const newText = before + updatedSelection + after
-
-  const lengthDiff = updatedSelection.length - selection.length
-
-  return {
-    updatedText: newText,
-    newSelectionStart: selectionStart,
-    newSelectionEnd: selectionEnd + lengthDiff,
   }
 }

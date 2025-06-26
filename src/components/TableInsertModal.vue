@@ -20,13 +20,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 
-const emit = defineEmits(['insert', 'close'])
+const emit = defineEmits<{
+  (e: 'insert', markdown: string): void
+  (e: 'close'): void
+}>()
 
-const rows = ref(3)
-const columns = ref(3)
+const rows = ref<number>(3)
+const columns = ref<number>(3)
 
 function insertTable() {
   let header = '|'
@@ -47,6 +50,7 @@ function insertTable() {
   emit('insert', tableMarkdown)
   emit('close')
 }
+
 function close() {
   emit('close')
 }
