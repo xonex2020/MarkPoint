@@ -15,7 +15,7 @@ services:
 
   markpoint:
     build:
-      context: ./MarkPoint
+      context: .
     restart: always
     ports:
       - "8080:8080"  # Optional, nur zum Testen
