@@ -16,4 +16,7 @@ export default defineConfig({
   optimizeDeps: {
     include: ['marked-emoji'], // <-- Hier markieren wir marked-emoji für die Optimierung
   },
+  preview: {
+    allowedHosts: ['markpoint.infra-docs.de'],
+  },
 })
